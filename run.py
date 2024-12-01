@@ -81,8 +81,12 @@ def calculate_reply_rate(feed):
 
 
 if user_handle:
-    follows = get_follows(user_handle)
-
+    user_handle = user_handle.replace("@", "")
+    try:
+        follows = get_follows(user_handle)
+    except Exception as e:
+        st.error(f"Error fetching follows: {e}")
+    pass
     if len(follows) > 1000:
         st.error("Too many follows, please try a different user")
     else:
@@ -92,15 +96,18 @@ if user_handle:
         progress_value = 1/len(follows)
         for idx, follow in enumerate(follows):
             my_bar.progress(progress_value * (idx + 1), text=f"Fetching {follow.handle}")
-            feed = get_author_feed(follow.handle, min_date, MAX_POSTS)
-            post_count, reply_count, reply_rate = calculate_reply_rate(feed)
-            follow_data.append({
-                'avatar': follow.avatar,
-                'handle': f"https://bsky.app/profile/{follow.handle}",
-                'post_count': post_count,
-                'reply_count': reply_count,
-                'reply_rate': reply_rate
-            })
+            try:
+                feed = get_author_feed(follow.handle, min_date, MAX_POSTS)
+                post_count, reply_count, reply_rate = calculate_reply_rate(feed)
+                follow_data.append({
+                    'avatar': follow.avatar,
+                    'handle': f"https://bsky.app/profile/{follow.handle}",
+                    'post_count': post_count,
+                    'reply_count': reply_count,
+                    'reply_rate': reply_rate
+                })
+            except Exception as e:
+                st.error(f"Error fetching data for {follow.handle}: {e}")
 
         follow_data = sorted(follow_data, key=lambda x: x['reply_rate'])
         my_bar.empty()
