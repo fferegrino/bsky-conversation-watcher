@@ -1,0 +1,5 @@
+.env
+.venv/
+.cache/
+*.ipynb
+.ipynb_checkpoints/
